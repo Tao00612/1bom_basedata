@@ -67,7 +67,7 @@ brand_rule_aishi = {
         '': ''
     },
 }
-MIN_NUM_AISHI = 12
+MIN_NUM_AISHI = 10
 RE_RULE_AISHI = {
     'RE_RULE_1': r'^S$',
     'RE_RULE_2': r'^A0|A1|A2$',

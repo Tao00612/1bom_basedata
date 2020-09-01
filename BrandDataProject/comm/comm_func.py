@@ -7,9 +7,6 @@ sys.path.append(os.path.abspath('../..'))
 import re
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
-# from BrandDataProject.Setting import MIN_NUM_CCTC as min_num
-# from BrandDataProject.Setting import SECTION_NUM_CCTC as S_NUM
-# from BrandDataProject.Setting import RE_RULE_CCTC as r_rule, brand_rule_cctc as bra_rule
 
 
 class CommFixedLengthBrand:
@@ -89,3 +86,6 @@ class CommFixedLengthBrand:
         self.cursor.execute(sql_str)
         res = self.cursor.fetchall()
         return res
+
+
+
