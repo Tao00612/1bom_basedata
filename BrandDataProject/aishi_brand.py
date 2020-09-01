@@ -5,7 +5,7 @@ from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 from BrandDataProject.Setting import SECTION_NUM_AISHI as S_NUM
-from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
+# from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
 
 #   修改sql
 #   在Settings文件根据dpf文件配置 最小数据长度,正则表达式,匹配规则参数具体,切片长度,切片数据
@@ -51,7 +51,7 @@ class ExtractData:
                 rule_list.append(s1)
         # 创建字典形式的规则
         rule_dict = {f"RE_RULE_{k}": rf"^{rule_list[k - 1][:-1]}$" for k in range(1, len(rule_list) + 1)}
-        min_num = len(rule_dict)
+        min_num = 15
         return rule_dict, min_num
 
     def create_section_num(self):
