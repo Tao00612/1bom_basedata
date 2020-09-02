@@ -1,11 +1,13 @@
 import os
+import re
 import sys
 sys.path.append(os.path.abspath('..'))
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 from BrandDataProject.Setting import SECTION_NUM_AISHI as S_NUM
-# from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
+from BrandDataProject.Setting import MIN_NUM_AISHI as min_num
+from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
 
 #   修改sql
 #   在Settings文件根据dpf文件配置 最小数据长度,正则表达式,匹配规则参数具体,切片长度,切片数据
@@ -15,47 +17,52 @@ class ExtractData:
 
     def __init__(self, *args, **kwargs):
         self.parameter_dict = {}
+        self.reg_list = []
         self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_DEV['1bom.1bomSpider']).connect()
 
     @property
     def extract_total_data(self):
-        sql = """
+        return """
         SELECT
             data
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'AISHI(爱华集团)' );
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'AISHI' );
         """
-        self.cursor.execute(sql)
+
+    def extract_sql(self):
+        self.cursor.execute(self.extract_total_data)
         ret = self.cursor.fetchall()
         return ret
 
     def create_parameter_dict(self):
-        for v, data in enumerate(self.extract_total_data, 1):
+        for v, data in enumerate(self.extract_sql(), 1):
             # 循环以\r\n分割取值
+
+            data['data'] = re.sub(' ', '', data['data'])
             data_res = data['data'].split('\r\n')
             # 以 | 分割
             data_list = [i.split('|') for i in data_res]
             # print(data_list)
-            self.parameter_dict[v] = {i[0].strip(): i[1].strip() for i in data_list}
-        return self.parameter_dict
+            self.parameter_dict[v] = {i[0]: i[1] for i in data_list}
+            self.reg_list.append(f"({'|'.join(x[0] for x in data_list)})")
 
-    def create_rule_dict(self):
-        rule_list = []
-        for i in self.parameter_dict:
-            s1 = r''
-            for j in self.parameter_dict[i]:
-                s1 = s1 + j + '|'
-            else:
-                rule_list.append(s1)
-        # 创建字典形式的规则
-        rule_dict = {f"RE_RULE_{k}": rf"^{rule_list[k - 1][:-1]}$" for k in range(1, len(rule_list) + 1)}
-        min_num = 15
-        return rule_dict, min_num
+        reg_match_str = r''.join(self.reg_list)
+        return self.parameter_dict, reg_match_str
 
-    def create_section_num(self):
-        pass
+    # def create_rule_dict(self):
+    #     rule_list = []
+    #     for i in self.parameter_dict:
+    #         s1 = r''
+    #         for j in self.parameter_dict[i]:
+    #             s1 = s1 + j + '|'
+    #         else:
+    #             rule_list.append(s1)
+    #     # 创建字典形式的规则
+    #     rule_dict = {f"RE_RULE_{k}": rf"^{rule_list[k - 1][:-1]}$" for k in range(1, len(rule_list) + 1)}
+    #     min_num = 15
+    #     return rule_dict, min_num
 
 
 class PySql(CommFixedLengthBrand):
@@ -67,8 +74,9 @@ class PySql(CommFixedLengthBrand):
         :param kwargs:
         """
         extract_data = ExtractData()
-        bra_rule = extract_data.create_parameter_dict()
-        r_rule, min_num = extract_data.create_rule_dict()
+        bra_rule, r_rule = extract_data.create_parameter_dict()
+        print(bra_rule)
+        print(r_rule)
         super(PySql, self).__init__(min_num, S_NUM, r_rule, bra_rule, *args, **kwargs)
 
     @property
@@ -97,3 +105,4 @@ class PySql(CommFixedLengthBrand):
 if __name__ == '__main__':
     obj = PySql()
     obj.main()
+

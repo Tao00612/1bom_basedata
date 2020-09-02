@@ -30,6 +30,7 @@ class PySql(CommFixedLengthBrand):
         ret = self.query_data(self.total_data_sql)
         list_data = self.create_read_data(ret)
         result_list = self.final_data_pattern(list_data)
+        print(result_list)
         return result_list
 
 

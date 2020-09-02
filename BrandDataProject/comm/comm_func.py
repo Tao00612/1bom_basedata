@@ -42,7 +42,7 @@ class CommFixedLengthBrand:
         for i in sql_data:
             # print(i)
             if len(i['kuc_name']) == self.min_num:
-                # 数据低于配置的数据长度全部清除
+                # 数据长度必须等于规则长度
                 useFul_list.append({'kuc_name': i['kuc_name']})
 
         for data in useFul_list:
