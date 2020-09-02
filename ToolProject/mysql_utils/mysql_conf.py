@@ -11,12 +11,12 @@ MYSQL_CONFIG_DEV = {
 
 # 线上环境
 MYSQL_CONFIG_PROD = {
-    '': {
+    '1bomProduct': {
         "host": "t.t.1bom.net",
         "port": 6033,
-        "user": "",
-        "password": "",
-        "database": ''
+        "user": "zheng_shu_yuan",
+        "password": "efg4567",
+        "database": '1bomProduct'
     },
 
 }

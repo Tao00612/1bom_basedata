@@ -15,6 +15,7 @@ from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 class ExtractData:
 
     def __init__(self, *args, **kwargs):
+        super(ExtractData, self).__init__(*args, **kwargs)
         self.parameter_dict = {}
         self.reg_list = []
         self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
@@ -27,7 +28,7 @@ class ExtractData:
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'AVX' );
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'KEMET(基美)-1' );
         """
 
     def extract_sql(self):
@@ -61,6 +62,8 @@ class PySql(CommFixedLengthBrand):
         """
         extract_data = ExtractData()
         bra_rule, r_rule = extract_data.create_parameter_dict()
+        # print(bra_rule)
+        # print(r_rule)
         super(PySql, self).__init__(r_rule, bra_rule, *args, **kwargs)
 
     @property
@@ -71,7 +74,7 @@ class PySql(CommFixedLengthBrand):
         """
         return """
             select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020-09-01`
-            where kuc_name like '0%' or kuc_name like '1%' or kuc_name like '2%';
+            where kuc_name like 'C%';
         """
 
     def main(self):

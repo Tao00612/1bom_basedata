@@ -7,7 +7,6 @@ import time
 
 sys.path.append(os.path.abspath('../..'))
 import re
-# from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_PROD
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 
@@ -31,7 +30,7 @@ class CommFixedLengthBrand:
 
     def create_read_data(self, sql_data):
         """
-        sql_data 是数据库 模糊查找的数据
+        sql_data 是数据库sql模糊查找的数据
         :return:
         """
         useful_list = []
@@ -41,8 +40,19 @@ class CommFixedLengthBrand:
             if res := re.match(self.r_rule, i['kuc_name']):
                 # 数据产品参数字符串拼接
                 # 循环正则匹配得到的数据
-                s1 = "||".join(self.bra_rule[j][v] for j, v in enumerate(res.groups(), 1))
-                useful_list.append(('kuc_id', i['kuc_name'], s1))
+                # s1 = "||".join(self.bra_rule[j][v] for j, v in enumerate(res.groups(), 1))
+                s1 = []
+                for j, v in enumerate(res.groups(), 1):
+                    if vv := self.bra_rule[j].get(v):
+                        s1.append(vv)
+                    else:
+                        # 调用解析方法, 转换参数
+                        arg = list(self.bra_rule[j].values())[0]
+                        v = self.handle_data(v, arg)
+                        # v1 = v + list(self.bra_rule[j].values())[0]
+                        s1.append(v)
+                s1_s = "||".join(s1)
+                useful_list.append(('kuc_id', i['kuc_name'], s1_s))
         return useful_list
 
     def query_data(self, sql_str):
@@ -54,3 +64,45 @@ class CommFixedLengthBrand:
         self.cursor.execute(sql_str)
         res = self.cursor.fetchall()
         return res
+
+    def handle_data(self, data, arg):
+        # 102 10000
+
+        def change_unit(num_unit_data: tuple, units: list, scale: int):
+            """
+            转换单位
+            :type num_unit_data:
+            :param units:
+            :param scale:
+            :return:
+            """
+
+            last_unit = units.index(num_unit_data[1])
+
+            def change(n: float, unit):
+                # 单位变小
+                if n < 1 and last_unit != 0:
+                    unit = max(0, unit - 1)
+                    n *= scale
+
+                # 单位变大
+                elif n >= scale and last_unit != len(units) - 1:
+                    unit = min(len(units), unit + 1)
+                    n /= scale
+
+                return '%g%s' % (n, units[unit])
+
+            return change(float(num_unit_data[0]), last_unit)
+        l1 = ['PF', 'NF', 'UF', 'MF', 'F']
+        l2 = ['R', 'K', 'M', 'G']
+        l3 = ['MW', 'W', 'KW']
+        data = int(data[:-1]) * 10 ** int(data[-1])
+        num_unit_data = (data, arg,)
+        if arg in l1:
+            units = ['PF', 'NF', 'UF', 'MF', 'F']
+        elif arg in l2:
+            units = ['R', 'K', 'M', 'G']
+        else:
+            units = ['MW', 'W', 'KW']
+        scale = 1000
+        return change_unit(num_unit_data, units, scale)
