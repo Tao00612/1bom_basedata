@@ -7,7 +7,8 @@ import time
 
 sys.path.append(os.path.abspath('../..'))
 import re
-from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
+# from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
+from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_PROD
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 
 
@@ -26,7 +27,7 @@ class CommFixedLengthBrand:
         self.r_rule = r_rule
         self.bra_rule = bra_rule
         super(CommFixedLengthBrand, self).__init__(*args, **kwargs)
-        self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_DEV['1bom.1bomSpider']).connect()
+        self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
 
     def create_read_data(self, sql_data):
         """
@@ -36,6 +37,7 @@ class CommFixedLengthBrand:
         useful_list = []
         for i in sql_data:
             # 循环判断 是否匹配正则 匹配成功进入下一步
+
             if res := re.match(self.r_rule, i['kuc_name']):
                 # 数据产品参数字符串拼接
                 # 循环正则匹配得到的数据

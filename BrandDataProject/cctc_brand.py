@@ -1,9 +1,10 @@
 import os
 import re
 import sys
+import time
 
 sys.path.append(os.path.abspath('..'))
-from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
+from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_PROD
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 
@@ -16,7 +17,7 @@ class ExtractData:
     def __init__(self, *args, **kwargs):
         self.parameter_dict = {}
         self.reg_list = []
-        self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_DEV['1bom.1bomSpider']).connect()
+        self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
 
     @property
     def extract_total_data(self):
@@ -49,19 +50,6 @@ class ExtractData:
         reg_match_str = f"^{''.join(self.reg_list)}$"
         return self.parameter_dict, reg_match_str
 
-    # def create_rule_dict(self):
-    #     rule_list = []
-    #     for i in self.parameter_dict:
-    #         s1 = r''
-    #         for j in self.parameter_dict[i]:
-    #             s1 = s1 + j + '|'
-    #         else:
-    #             rule_list.append(s1)
-    #     # 创建字典形式的规则
-    #     rule_dict = {f"RE_RULE_{k}": rf"^{rule_list[k - 1][:-1]}$" for k in range(1, len(rule_list) + 1)}
-    #     min_num = 15
-    #     return rule_dict, min_num
-
 
 class PySql(CommFixedLengthBrand):
 
@@ -73,8 +61,6 @@ class PySql(CommFixedLengthBrand):
         """
         extract_data = ExtractData()
         bra_rule, r_rule = extract_data.create_parameter_dict()
-        # print(bra_rule)
-        # print(r_rule)
         super(PySql, self).__init__(r_rule, bra_rule, *args, **kwargs)
 
     @property
@@ -84,8 +70,8 @@ class PySql(CommFixedLengthBrand):
         :return:
         """
         return """
-            select kuc_name from riec_stock_arrowcom 
-            where kuc_name like 'TCC%' ;
+            select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020-09-01`
+            where kuc_name like 'TCC%';
         """
 
     def main(self):
@@ -99,3 +85,4 @@ class PySql(CommFixedLengthBrand):
 if __name__ == '__main__':
     obj = PySql()
     obj.main()
+

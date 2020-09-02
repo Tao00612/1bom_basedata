@@ -27,7 +27,7 @@ class ExtractData:
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'AISHI' );
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'AVX' );
         """
 
     def extract_sql(self):
@@ -71,7 +71,7 @@ class PySql(CommFixedLengthBrand):
         """
         return """
             select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020-09-01`
-            where kuc_name like 'SA0%' or kuc_name like 'SA1%' or kuc_name like 'SA2%';
+            where kuc_name like '0%' or kuc_name like '1%' or kuc_name like '2%';
         """
 
     def main(self):
@@ -80,6 +80,7 @@ class PySql(CommFixedLengthBrand):
         # 得到想要的数据
         list_data = self.create_read_data(ret)
         print(list_data)
+        print(len(list_data))
 
 
 if __name__ == '__main__':
