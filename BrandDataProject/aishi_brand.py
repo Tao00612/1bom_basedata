@@ -1,13 +1,15 @@
 import os
 import re
 import sys
+import time
+
 sys.path.append(os.path.abspath('..'))
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 from BrandDataProject.comm.comm_func import CommFixedLengthBrand
-from BrandDataProject.Setting import SECTION_NUM_AISHI as S_NUM
-from BrandDataProject.Setting import MIN_NUM_AISHI as min_num
-from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
+# from BrandDataProject.Setting import SECTION_NUM_AISHI as S_NUM
+# from BrandDataProject.Setting import MIN_NUM_AISHI as min_num
+# from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
 
 #   修改sql
 #   在Settings文件根据dpf文件配置 最小数据长度,正则表达式,匹配规则参数具体,切片长度,切片数据
@@ -39,16 +41,17 @@ class ExtractData:
     def create_parameter_dict(self):
         for v, data in enumerate(self.extract_sql(), 1):
             # 循环以\r\n分割取值
-
             data['data'] = re.sub(' ', '', data['data'])
             data_res = data['data'].split('\r\n')
             # 以 | 分割
             data_list = [i.split('|') for i in data_res]
             # print(data_list)
+            # 创建字典规则
             self.parameter_dict[v] = {i[0]: i[1] for i in data_list}
+            # 创建正则表达式
             self.reg_list.append(f"({'|'.join(x[0] for x in data_list)})")
 
-        reg_match_str = r''.join(self.reg_list)
+        reg_match_str = f"^{''.join(self.reg_list)}$"
         return self.parameter_dict, reg_match_str
 
     # def create_rule_dict(self):
@@ -75,9 +78,7 @@ class PySql(CommFixedLengthBrand):
         """
         extract_data = ExtractData()
         bra_rule, r_rule = extract_data.create_parameter_dict()
-        print(bra_rule)
-        print(r_rule)
-        super(PySql, self).__init__(min_num, S_NUM, r_rule, bra_rule, *args, **kwargs)
+        super(PySql, self).__init__(r_rule, bra_rule, *args, **kwargs)
 
     @property
     def total_data_sql(self):
@@ -93,13 +94,9 @@ class PySql(CommFixedLengthBrand):
     def main(self):
         # 执行sql 得到厂商编号
         ret = self.query_data(self.total_data_sql)
-        # 将得到的编号简单进行数据清洗,并将数据切片得到列表中嵌套列表格式
+        # 得到想要的数据
         list_data = self.create_read_data(ret)
-        # 用列表中嵌套的列表和配置文件的正则表达式进行匹配,匹配全部通过的值
-        # 根据切片的数据和配置文件得到相对应的数据参数 放在result_list中
-        result_list = self.final_data_pattern(list_data)
-        print(result_list)
-        return result_list
+        print(list_data)
 
 
 if __name__ == '__main__':

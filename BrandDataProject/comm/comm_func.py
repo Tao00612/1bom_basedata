@@ -3,6 +3,8 @@
 """
 import os
 import sys
+import time
+
 sys.path.append(os.path.abspath('../..'))
 import re
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
@@ -14,18 +16,13 @@ class CommFixedLengthBrand:
     品牌通用类
     """
 
-    def __init__(self, min_num, S_NUM, r_rule, bra_rule, *args, **kwargs):
+    def __init__(self, r_rule, bra_rule, *args, **kwargs):
         """
-
-        :param min_num: 最小的数据长度
-        :param S_NUM: 切片相关的字典
         :param r_rule: 正则表达式
         :param bra_rule: 正则表达式通过对应的参数
         :param args:
         :param kwargs:
         """
-        self.min_num = min_num
-        self.S_NUM = S_NUM
         self.r_rule = r_rule
         self.bra_rule = bra_rule
         super(CommFixedLengthBrand, self).__init__(*args, **kwargs)
@@ -33,49 +30,19 @@ class CommFixedLengthBrand:
 
     def create_read_data(self, sql_data):
         """
-        sql_data sql查询的数据
-        读取文件,简单清洗不含规则的数据,
+        sql_data 是数据库 模糊查找的数据
         :return:
         """
-        useFul_list = []
-        list_data = []
+        useful_list = []
         for i in sql_data:
-            # print(i)
-            if len(i['kuc_name']) == self.min_num:
-                # 数据长度必须等于规则长度
-                useFul_list.append({'kuc_name': i['kuc_name']})
+            # 循环判断 是否匹配正则 匹配成功进入下一步
+            if res := re.match(self.r_rule, i['kuc_name']):
+                # 数据产品参数字符串拼接
+                # 循环正则匹配得到的数据
+                s1 = "||".join(self.bra_rule[j][v] for j, v in enumerate(res.groups(), 1))
+                useful_list.append(('kuc_id', i['kuc_name'], s1))
 
-        for data in useFul_list:
-            kuc_name = data['kuc_name']
-            for x, y in self.S_NUM.items():
-                # 根据配置文件 将数据切片 添加到列表
-                kuc_name_t = [kuc_name[y[i]: y[i + 1]] for i in range(x)]
-                list_data.append(kuc_name_t)
-        return list_data
-
-    def final_data_pattern(self, list_data):
-        """
-        list_data 通过的数据集
-        根据 切片数据元组 和配置文件的正则表达式进行匹配, 将通过的数据保存在 result_list
-        :return:
-        """
-        result_list = []
-        for data in list_data:
-            res_list = []
-            for j in range(1, len(self.r_rule) + 1):
-                if result := re.findall(self.r_rule[f'RE_RULE_{j}'], data[j - 1]):
-                    # 正则匹配
-                    res_list.append(self.bra_rule[j][result[0]])
-                else:
-                    res_list.clear()
-                    break
-            else:
-                kuc_name = ''.join(data)
-                param = '||'.join(res_list)
-                res_tuple = ('kuc_id', kuc_name, param)
-                result_list.append(res_tuple)
-
-        return result_list
+        return useful_list
 
     def query_data(self, sql_str):
         """
@@ -86,6 +53,3 @@ class CommFixedLengthBrand:
         self.cursor.execute(sql_str)
         res = self.cursor.fetchall()
         return res
-
-
-
