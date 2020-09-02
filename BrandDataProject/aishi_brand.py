@@ -7,12 +7,9 @@ sys.path.append(os.path.abspath('..'))
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
 from BrandDataProject.comm.comm_func import CommFixedLengthBrand
-# from BrandDataProject.Setting import SECTION_NUM_AISHI as S_NUM
-# from BrandDataProject.Setting import MIN_NUM_AISHI as min_num
-# from BrandDataProject.Setting import RE_RULE_AISHI as r_rule, brand_rule_aishi as bra_rule
 
-#   修改sql
-#   在Settings文件根据dpf文件配置 最小数据长度,正则表达式,匹配规则参数具体,切片长度,切片数据
+
+#  根据不同的品牌 写不同的sql
 
 
 class ExtractData:
@@ -45,10 +42,9 @@ class ExtractData:
             data_res = data['data'].split('\r\n')
             # 以 | 分割
             data_list = [i.split('|') for i in data_res]
-            # print(data_list)
             # 创建字典规则
             self.parameter_dict[v] = {i[0]: i[1] for i in data_list}
-            # 创建正则表达式
+            # 创建正则表达式规则
             self.reg_list.append(f"({'|'.join(x[0] for x in data_list)})")
 
         reg_match_str = f"^{''.join(self.reg_list)}$"

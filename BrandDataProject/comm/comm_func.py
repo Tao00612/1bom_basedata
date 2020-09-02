@@ -41,7 +41,6 @@ class CommFixedLengthBrand:
                 # 循环正则匹配得到的数据
                 s1 = "||".join(self.bra_rule[j][v] for j, v in enumerate(res.groups(), 1))
                 useful_list.append(('kuc_id', i['kuc_name'], s1))
-
         return useful_list
 
     def query_data(self, sql_str):
