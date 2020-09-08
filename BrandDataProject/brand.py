@@ -14,25 +14,27 @@ from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 
 class ExtractData:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, brand, *args, **kwargs):
         super(ExtractData, self).__init__(*args, **kwargs)
         self.parameter_dict = {}
         self.reg_list = []
+        self.brand = brand
         self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
 
     @property
     def extract_total_data(self):
-        return """
+        sql = '''
         SELECT
             data
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE name = 'CCXXXXXXX5RXBBXXX' );
-        """
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE name = %s );
+        '''
+        return sql
 
     def extract_sql(self):
-        self.cursor.execute(self.extract_total_data)
+        self.cursor.execute(self.extract_total_data, self.brand)
         ret = self.cursor.fetchall()
         return ret
 
@@ -47,6 +49,7 @@ class ExtractData:
             self.parameter_dict[v] = {i[0]: i[1] for i in data_list}
             # 创建正则表达式规则
             self.reg_list.append(f"({'|'.join(x[0] for x in data_list)})")
+
         reg_match_str = f"^{''.join(self.reg_list)}$"
         return self.parameter_dict, reg_match_str
 
@@ -74,15 +77,13 @@ class PySql(CommFixedLengthBrand):
     def main(self):
         # 执行sql 得到厂商编号
         ret = self.query_data(self.total_data_sql)
-        # 得到想要的数据
         list_data = self.create_read_data(ret)
-        print(len(list_data))
         return list_data
 
 
 if __name__ == '__main__':
-    extract_data = ExtractData()
+    # bra_rule 品牌对应参数  r_rule 正则表达式
+    extract_data = ExtractData('CCXXXXXXX7RXBBXXX')
     bra_rule, r_rule = extract_data.create_parameter_dict()
     obj = PySql(r_rule, bra_rule)
     obj.main()
-

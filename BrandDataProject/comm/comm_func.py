@@ -1,6 +1,11 @@
 """
 所有品牌通用方法
 """
+# import sys
+# import os
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# #存放绝对路径
+# sys.path.append(BASE_DIR)
 import os
 import sys
 import time
@@ -34,13 +39,11 @@ class CommFixedLengthBrand:
         :return:
         """
         useful_list = []
-        for i in sql_data:
+        for data in sql_data:
             # 循环判断 是否匹配正则 匹配成功进入下一步
-
-            if res := re.match(self.r_rule, i['kuc_name']):
+            if res := re.search(self.r_rule, data['kuc_name']):
                 # 数据产品参数字符串拼接
                 # 循环正则匹配得到的数据
-                # s1 = "||".join(self.bra_rule[j][v] for j, v in enumerate(res.groups(), 1))
                 s1 = []
                 for j, v in enumerate(res.groups(), 1):
                     if vv := self.bra_rule[j].get(v):
@@ -48,11 +51,16 @@ class CommFixedLengthBrand:
                     else:
                         # 调用解析方法, 转换参数
                         arg = list(self.bra_rule[j].values())[0]
-                        v = self.handle_data(v, arg)
-                        # v1 = v + list(self.bra_rule[j].values())[0]
+                        if v.isdigit():
+                            v = self.handle_data(v, arg)
+                        elif 'R' in v.upper():
+                            # 处理 R 情况数据
+                            v = v.replace('R', '.')
+                            v = str(float(v)) + arg
+                            print(v)
                         s1.append(v)
                 s1_s = "||".join(s1)
-                useful_list.append(('kuc_id', i['kuc_name'], s1_s))
+                useful_list.append(('kuc_id', data['kuc_name'], s1_s))
         return useful_list
 
     def query_data(self, sql_str):
@@ -66,7 +74,11 @@ class CommFixedLengthBrand:
         return res
 
     def handle_data(self, data, arg):
-        # 102 10000
+        """
+        :param data: 需要转换的数据
+        :param arg: 数据的单位
+        :return:
+        """
 
         def change_unit(num_unit_data: tuple, units: list, scale: int):
             """
@@ -93,16 +105,26 @@ class CommFixedLengthBrand:
                 return '%g%s' % (n, units[unit])
 
             return change(float(num_unit_data[0]), last_unit)
+
         l1 = ['PF', 'NF', 'UF', 'MF', 'F']
         l2 = ['R', 'K', 'M', 'G']
         l3 = ['MW', 'W', 'KW']
+        l4 = ['mΩ', ]
+        l5 = ['μV', 'mV', 'V', 'KV', 'MV']
         data = int(data[:-1]) * 10 ** int(data[-1])
         num_unit_data = (data, arg,)
         if arg in l1:
             units = ['PF', 'NF', 'UF', 'MF', 'F']
         elif arg in l2:
             units = ['R', 'K', 'M', 'G']
-        else:
+        elif arg in l3:
             units = ['MW', 'W', 'KW']
+        elif arg in l4:
+            units = ['mΩ', ]
+        elif arg in l5:
+            units = ['μV', 'mV', 'V', 'KV', 'MV']
+        else:
+            return
+
         scale = 1000
         return change_unit(num_unit_data, units, scale)

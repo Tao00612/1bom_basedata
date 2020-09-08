@@ -1,12 +1,11 @@
 import os
 import sys
 
-from BrandDataProject.brand import ExtractData
-
 sys.path.append(os.path.abspath('..'))
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_DEV
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
-from BrandDataProject.chinocera_brand import PySql
+from BrandDataProject.brand import PySql
+from BrandDataProject.brand import ExtractData
 
 
 class SaveBrand:
@@ -20,9 +19,9 @@ class SaveBrand:
     @property
     def query_data(self):
         """提取数据"""
-        extract_data = ExtractData()
+        extract_data = ExtractData('CCXXXXXXX6SXBBXXX')
         bra_rule, r_rule = extract_data.create_parameter_dict()
-        obj = PySql(r_rule,bra_rule)
+        obj = PySql(r_rule, bra_rule)
         result = obj.main()
         return result
 
@@ -75,7 +74,7 @@ class SaveBrand:
         self.conn.commit()
 
     def update_product_id(self):
-        sql = """
+        sql =  """
             UPDATE  riec_product t1
             LEFT JOIN
                     riec_product_base t2 
