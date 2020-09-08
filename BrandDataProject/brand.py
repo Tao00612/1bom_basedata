@@ -28,7 +28,7 @@ class ExtractData:
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE brand = 'KEMET(基美)-1' );
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE name = 'CCXXXXXXX5RXBBXXX' );
         """
 
     def extract_sql(self):
@@ -47,23 +47,17 @@ class ExtractData:
             self.parameter_dict[v] = {i[0]: i[1] for i in data_list}
             # 创建正则表达式规则
             self.reg_list.append(f"({'|'.join(x[0] for x in data_list)})")
-
         reg_match_str = f"^{''.join(self.reg_list)}$"
         return self.parameter_dict, reg_match_str
 
 
 class PySql(CommFixedLengthBrand):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, r_rule, bra_rule, *args, **kwargs):
         """
-        min_num, S_NUM, r_rule, bra_rule  ExtractData类拿到
         :param args:
         :param kwargs:
         """
-        extract_data = ExtractData()
-        bra_rule, r_rule = extract_data.create_parameter_dict()
-        # print(bra_rule)
-        # print(r_rule)
         super(PySql, self).__init__(r_rule, bra_rule, *args, **kwargs)
 
     @property
@@ -73,8 +67,8 @@ class PySql(CommFixedLengthBrand):
         :return:
         """
         return """
-            select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020-09-01`
-            where kuc_name like 'C%';
+            select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020_09_01`
+            where kuc_name like 'CC%';
         """
 
     def main(self):
@@ -82,11 +76,13 @@ class PySql(CommFixedLengthBrand):
         ret = self.query_data(self.total_data_sql)
         # 得到想要的数据
         list_data = self.create_read_data(ret)
-        print(list_data)
         print(len(list_data))
+        return list_data
 
 
 if __name__ == '__main__':
-    obj = PySql()
+    extract_data = ExtractData()
+    bra_rule, r_rule = extract_data.create_parameter_dict()
+    obj = PySql(r_rule, bra_rule)
     obj.main()
 
