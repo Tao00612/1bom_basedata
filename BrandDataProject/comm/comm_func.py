@@ -50,14 +50,29 @@ class CommFixedLengthBrand:
                         s1.append(vv)
                     else:
                         # 调用解析方法, 转换参数
-                        arg = list(self.bra_rule[j].values())[0]
-                        if v.isdigit():
-                            v = self.handle_data(v, arg)
-                        elif 'R' in v.upper():
-                            # 处理 R 情况数据
-                            v = v.replace('R', '.')
-                            v = str(float(v)) + arg
-                            print(v)
+                        if len(v) == 3:
+                            arg = list(self.bra_rule[j].values())[0]
+                            if v.isdigit():
+                                v = self.handle_data(v, arg)
+                            elif 'R' in v.upper():
+                                # 处理 R 情况数据
+                                v = v.replace('R', '.')
+                                v = str(float(v)) + arg
+                                print(v)
+                        elif len(v) == 4:
+                            arg = list(self.bra_rule[j].values())[0]
+                            if v.isdigit():
+                                v = self.handle_data(v, arg)
+                            else:
+                                num, stem = (v[:3], v[3:])
+                                d_num = {
+                                    'J': 0.1,
+                                    'K': 0.01,
+                                    'L': 0.001,
+                                    'M': 0.0001,
+                                    'N': 0.00001,
+                                }
+                                v = str(int(num) * d_num.get(stem)) + arg
                         s1.append(v)
                 s1_s = "||".join(s1)
                 useful_list.append(('kuc_id', data['kuc_name'], s1_s))
@@ -88,43 +103,33 @@ class CommFixedLengthBrand:
             :param scale:
             :return:
             """
-
             last_unit = units.index(num_unit_data[1])
-
             def change(n: float, unit):
                 # 单位变小
                 if n < 1 and last_unit != 0:
                     unit = max(0, unit - 1)
                     n *= scale
-
                 # 单位变大
                 elif n >= scale and last_unit != len(units) - 1:
                     unit = min(len(units), unit + 1)
                     n /= scale
-
                 return '%g%s' % (n, units[unit])
-
             return change(float(num_unit_data[0]), last_unit)
 
-        l1 = ['PF', 'NF', 'UF', 'MF', 'F']
-        l2 = ['R', 'K', 'M', 'G']
-        l3 = ['MW', 'W', 'KW']
-        l4 = ['mΩ', ]
-        l5 = ['μV', 'mV', 'V', 'KV', 'MV']
+        d_stem = {
+            'l1': ['PF', 'NF', 'UF', 'MF', 'F'],
+            'l2': ['R', 'K', 'M', 'G'],
+            'l3': ['MW', 'W', 'KW'],
+            'l4': ['mΩ', 'Ω', 'kΩ', 'MΩ'],
+            'l5': ['μV', 'mV', 'V', 'KV', 'MV']
+        }
         data = int(data[:-1]) * 10 ** int(data[-1])
         num_unit_data = (data, arg,)
-        if arg in l1:
-            units = ['PF', 'NF', 'UF', 'MF', 'F']
-        elif arg in l2:
-            units = ['R', 'K', 'M', 'G']
-        elif arg in l3:
-            units = ['MW', 'W', 'KW']
-        elif arg in l4:
-            units = ['mΩ', ]
-        elif arg in l5:
-            units = ['μV', 'mV', 'V', 'KV', 'MV']
+        for _, y in d_stem.items():
+            if arg in y:
+                units = y
+                break
         else:
             return
-
         scale = 1000
         return change_unit(num_unit_data, units, scale)

@@ -3,7 +3,6 @@
 """
 import asyncio
 import random
-import re
 import httpx
 from urllib.parse import urljoin
 import os
@@ -23,22 +22,21 @@ redis_2 = RedisConnPool(config_2['1bom.net']).connect()
 
 async def query_pdf_code():
     conn, cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
-
     sql = """
-    SELECT
+        SELECT
         kuc_pdf 
-    FROM
+        FROM
         `1bomSpiderNew`.`riec_stock_others_attr` 
-    WHERE
+        WHERE
         kuc_shopid = 17 
-        AND kuc_gid IN 
-        ( SELECT kuc_gid FROM `1bomSpiderNew`.`riec_stock_others` 
-        WHERE `kuc_parent` = '0-312-313-' AND `kuc_brname` = 'FH(风华)' AND `kuc_shopid` = '17' )
-    """
+        AND kuc_gid IN ( SELECT kuc_gid FROM `1bomSpiderNew`.`riec_stock_others` 
+        WHERE `kuc_parent` = '0-308-439-' AND `kuc_brname` = 'UNI-ROYAL(厚声)' 
+        AND `kuc_shopid` = '17' )
+        """
     cursor.execute(sql)
     results = cursor.fetchall()
     for i, data in enumerate(results, 1):
-        file_path = f'C:/Users/admin/Desktop/work_pdf/风华/{i}.pdf'
+        file_path = f'C:/Users/admin/Desktop/work_pdf/厚声/{i}.pdf'
         await down_pdf(data['kuc_pdf'], file_path)
 
 
@@ -56,9 +54,7 @@ async def down_pdf(pdf_code, file_name):
     pdf_api_url = _pdf_api.format(pdf_code)
     proxy_list = redis_2.hkeys('zhima_proxy')
     http_proxy = random.choice(proxy_list)
-    # http_proxy = http_proxy.replace('http', 'https')
     proxies = {
-        # 'http': http_proxy,
         'https': http_proxy,
     }
     async with httpx.AsyncClient(proxies=proxies) as client:

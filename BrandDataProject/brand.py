@@ -14,11 +14,12 @@ from BrandDataProject.comm.comm_func import CommFixedLengthBrand
 
 class ExtractData:
 
-    def __init__(self, brand, *args, **kwargs):
+    def __init__(self, brand_exm, brand, *args, **kwargs):
         super(ExtractData, self).__init__(*args, **kwargs)
         self.parameter_dict = {}
         self.reg_list = []
         self.brand = brand
+        self.brand_exm = brand_exm
         self.conn, self.cursor = MysqlPooledDB(MYSQL_CONFIG_PROD['1bomProduct']).connect()
 
     @property
@@ -29,12 +30,12 @@ class ExtractData:
         FROM
             riec_part_number_rule_code
         WHERE
-            rule_id = ( SELECT id FROM riec_part_number_rule WHERE name = %s );
+            rule_id = ( SELECT id FROM riec_part_number_rule WHERE name = %s and brand = %s);
         '''
         return sql
 
     def extract_sql(self):
-        self.cursor.execute(self.extract_total_data, self.brand)
+        self.cursor.execute(self.extract_total_data, self.brand_exm, self.brand)
         ret = self.cursor.fetchall()
         return ret
 
@@ -71,19 +72,21 @@ class PySql(CommFixedLengthBrand):
         """
         return """
             select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020_09_01`
-            where kuc_name like 'CC%';
+            where kuc_name like '0%' or kuc_name like '1%';
         """
 
     def main(self):
         # 执行sql 得到厂商编号
         ret = self.query_data(self.total_data_sql)
         list_data = self.create_read_data(ret)
+        print(list_data)
+        print(len(list_data))
         return list_data
 
 
 if __name__ == '__main__':
     # bra_rule 品牌对应参数  r_rule 正则表达式
-    extract_data = ExtractData('CCXXXXXXX7RXBBXXX')
+    extract_data = ExtractData('1206B104K500CT', 'FH')
     bra_rule, r_rule = extract_data.create_parameter_dict()
     obj = PySql(r_rule, bra_rule)
     obj.main()

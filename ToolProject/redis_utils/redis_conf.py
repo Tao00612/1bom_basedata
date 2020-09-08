@@ -12,7 +12,7 @@ REDIS_CONFIG_DEV = {
 # 线上环境
 REDIS_CONFIG_PROD = {
     '1bom.net': {
-        'host': "127.0.0.1",
+        'host': "t.t.1bom.net",
         'port': 6379,
         'password': 'centosRedis',
         'max_connections': 100,
