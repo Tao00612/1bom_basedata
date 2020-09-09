@@ -19,7 +19,7 @@ class SaveBrand:
     @property
     def query_data(self):
         """提取数据"""
-        extract_data = ExtractData('1206B104K500CT', 'FH')
+        extract_data = ExtractData('CCXXXXXXXXXXBXXXX', 'Yageo')
         bra_rule, r_rule = extract_data.create_parameter_dict()
         obj = PySql(r_rule, bra_rule)
         result = obj.main()
@@ -34,7 +34,7 @@ class SaveBrand:
 
     def insert_data(self):
         """执行插入品牌标准型号数据表,返回一个列表"""
-        data_list = [('FH', i[1], i[2]) for i in self.query_data]
+        data_list = [('Yageo', i[1], i[2]) for i in self.query_data]
         try:
             self.cursor.executemany(self.insert_data_sql, data_list)
             self.conn.commit()
@@ -47,13 +47,13 @@ class SaveBrand:
         return self.insert_base_data_list
 
     def update_cate_brand_id(self):
-        #
+        # select
         sql1 = '''
-            update riec_product set brand_id=1
+            update riec_product set brand_id=2
             where brand = 'Yageo';
         '''
         sql2 = '''
-            update riec_product set category_id=1
+            update riec_product set category_id=2
                 where brand = 'Yageo';
         '''
         self.cursor.execute(sql1)

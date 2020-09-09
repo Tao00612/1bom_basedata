@@ -91,20 +91,37 @@ class CommFixedLengthBrand:
         :param j:
         :return:
         '''
+        arg = list(self.bra_rule[j].values())[0]
+        # 取单位符号 arg
         if len(v) == 3:
-            arg = list(self.bra_rule[j].values())[0]
+            # 处理数据3长度的情况
             if v.isdigit():
-                v = self.handle_data(v, arg)
+                # 处理数据全是数字的情况
+                v = 'JUMPER' if v.count('0') == 3 else self.handle_data(v, arg)
+                # if v.count('0') == 3:
+                #     v = 'JUMPER'
+                # else:
+                #     v = self.handle_data(v, arg)
             elif 'R' in v.upper():
                 # 处理 R 情况数据
                 v = v.replace('R', '.')
                 v = str(float(v)) + arg
-        elif len(v) == 4:  # 210J  欧姆
-            arg = list(self.bra_rule[j].values())[0]
+        elif len(v) == 4:
+            # 处理数据4长度的情况
             if v.isdigit():
-                v = self.handle_data(v, arg)
+                # 处理数据全是数字的情况
+                v = 'JUMPER' if v.count('0') == 4 else self.handle_data(v, arg)
+                # if v.count('0') == 4:
+                #     v = 'JUMPER'
+                # else:
+                #     v = self.handle_data(v, arg)
+            elif 'R' in v.upper():
+                # 处理 R 情况数据
+                v = v.replace('R', '.')
+                v = str(float(v)) + arg
             else:
-                num, stem = (v[:3], v[3:])
+                # 处理最后一位为字母和数字的转换
+                num, stem = (v[:-1], v[-1:])
                 d_num = {
                     'J': 0.1,
                     'K': 0.01,
@@ -112,12 +129,13 @@ class CommFixedLengthBrand:
                     'M': 0.0001,
                     'N': 0.00001,
                 }
-                v = str(int(num) * d_num.get(stem))
-                if not v.endswith('0'):
-                    v += arg
-                else:
-                    index_num = v.index('.')
-                    v = v[:index_num] + arg
+                v = str(round(int(num) * d_num.get(stem), 2))
+                v = v[:v.index('.')] + arg if v.endswith('0') else v + arg
+                # if not v.endswith('0'):
+                #     v += arg
+                # else:
+                #     index_num = v.index('.')
+                #     v = v[:index_num] + arg
         return v
 
     def query_data(self, sql_str):

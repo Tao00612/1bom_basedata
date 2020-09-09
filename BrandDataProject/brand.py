@@ -86,7 +86,9 @@ class PySql(CommFixedLengthBrand):
 
 if __name__ == '__main__':
     # bra_rule 品牌对应参数  r_rule 正则表达式
+    # 第一个参数 是 数据库的例子 第二个参数是例子品牌 目的是得到正则 和 参数
     extract_data = ExtractData('CCXXXXXXXXXXBXXXX', 'Yageo')
     bra_rule, r_rule = extract_data.create_parameter_dict()
     obj = PySql(r_rule, bra_rule)
     obj.main()
+
