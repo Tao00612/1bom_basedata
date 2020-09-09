@@ -50,33 +50,75 @@ class CommFixedLengthBrand:
                         s1.append(vv)
                     else:
                         # 调用解析方法, 转换参数
-                        if len(v) == 3:
-                            arg = list(self.bra_rule[j].values())[0]
-                            if v.isdigit():
-                                v = self.handle_data(v, arg)
-                            elif 'R' in v.upper():
-                                # 处理 R 情况数据
-                                v = v.replace('R', '.')
-                                v = str(float(v)) + arg
-                                print(v)
-                        elif len(v) == 4:
-                            arg = list(self.bra_rule[j].values())[0]
-                            if v.isdigit():
-                                v = self.handle_data(v, arg)
-                            else:
-                                num, stem = (v[:3], v[3:])
-                                d_num = {
-                                    'J': 0.1,
-                                    'K': 0.01,
-                                    'L': 0.001,
-                                    'M': 0.0001,
-                                    'N': 0.00001,
-                                }
-                                v = str(int(num) * d_num.get(stem)) + arg
+                        # if len(v) == 3:
+                        #     arg = list(self.bra_rule[j].values())[0]
+                        #     if v.isdigit():
+                        #         v = self.handle_data(v, arg)
+                        #     elif 'R' in v.upper():
+                        #         # 处理 R 情况数据
+                        #         v = v.replace('R', '.')
+                        #         v = str(float(v)) + arg
+                        #         print(v)
+                        # elif len(v) == 4:  # 210J  欧姆
+                        #     arg = list(self.bra_rule[j].values())[0]
+                        #     if v.isdigit():
+                        #         v = self.handle_data(v, arg)
+                        #     else:
+                        #         num, stem = (v[:3], v[3:])
+                        #         d_num = {
+                        #             'J': 0.1,
+                        #             'K': 0.01,
+                        #             'L': 0.001,
+                        #             'M': 0.0001,
+                        #             'N': 0.00001,
+                        #         }
+                        #         v = str(int(num) * d_num.get(stem))
+                        #         if not v.endswith('0'):
+                        #             v += arg
+                        #         else:
+                        #             index_num = v.index('.')
+                        #             v = v[:index_num] + arg
+                        v = self.analysis(v, j)
                         s1.append(v)
                 s1_s = "||".join(s1)
                 useful_list.append(('kuc_id', data['kuc_name'], s1_s))
         return useful_list
+
+    def analysis(self, v, j):
+        '''
+        处理能匹配正则 不能匹配参数字典的情况
+        :param v:
+        :param j:
+        :return:
+        '''
+        if len(v) == 3:
+            arg = list(self.bra_rule[j].values())[0]
+            if v.isdigit():
+                v = self.handle_data(v, arg)
+            elif 'R' in v.upper():
+                # 处理 R 情况数据
+                v = v.replace('R', '.')
+                v = str(float(v)) + arg
+        elif len(v) == 4:  # 210J  欧姆
+            arg = list(self.bra_rule[j].values())[0]
+            if v.isdigit():
+                v = self.handle_data(v, arg)
+            else:
+                num, stem = (v[:3], v[3:])
+                d_num = {
+                    'J': 0.1,
+                    'K': 0.01,
+                    'L': 0.001,
+                    'M': 0.0001,
+                    'N': 0.00001,
+                }
+                v = str(int(num) * d_num.get(stem))
+                if not v.endswith('0'):
+                    v += arg
+                else:
+                    index_num = v.index('.')
+                    v = v[:index_num] + arg
+        return v
 
     def query_data(self, sql_str):
         """
@@ -104,6 +146,7 @@ class CommFixedLengthBrand:
             :return:
             """
             last_unit = units.index(num_unit_data[1])
+
             def change(n: float, unit):
                 # 单位变小
                 if n < 1 and last_unit != 0:
@@ -114,6 +157,7 @@ class CommFixedLengthBrand:
                     unit = min(len(units), unit + 1)
                     n /= scale
                 return '%g%s' % (n, units[unit])
+
             return change(float(num_unit_data[0]), last_unit)
 
         d_stem = {

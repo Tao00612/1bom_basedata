@@ -35,7 +35,7 @@ class ExtractData:
         return sql
 
     def extract_sql(self):
-        self.cursor.execute(self.extract_total_data, self.brand_exm, self.brand)
+        self.cursor.execute(self.extract_total_data, (self.brand_exm, self.brand,))
         ret = self.cursor.fetchall()
         return ret
 
@@ -71,8 +71,8 @@ class PySql(CommFixedLengthBrand):
         :return:
         """
         return """
-            select kuc_name from 1bomSpiderNew.`riec_stock_arrowcom_2020_09_01`
-            where kuc_name like '0%' or kuc_name like '1%';
+            select kuc_name from 1bomSpiderNew.`riec_stock_szlcsc`
+            where kuc_name like 'CC%';
         """
 
     def main(self):
@@ -86,7 +86,7 @@ class PySql(CommFixedLengthBrand):
 
 if __name__ == '__main__':
     # bra_rule 品牌对应参数  r_rule 正则表达式
-    extract_data = ExtractData('1206B104K500CT', 'FH')
+    extract_data = ExtractData('CCXXXXXXXXXXBXXXX', 'Yageo')
     bra_rule, r_rule = extract_data.create_parameter_dict()
     obj = PySql(r_rule, bra_rule)
     obj.main()
