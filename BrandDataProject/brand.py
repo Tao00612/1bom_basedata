@@ -57,12 +57,12 @@ class ExtractData:
 
 class PySql(CommFixedLengthBrand):
 
-    def __init__(self, r_rule, bra_rule, *args, **kwargs):
+    def __init__(self, r_rule, bra_rule, brand, sign, rule, *args, **kwargs):
         """
         :param args:
         :param kwargs:
         """
-        super(PySql, self).__init__(r_rule, bra_rule, *args, **kwargs)
+        super(PySql, self).__init__(r_rule, bra_rule, brand, sign, rule, *args, **kwargs)
 
     @property
     def total_data_sql(self):
@@ -72,7 +72,7 @@ class PySql(CommFixedLengthBrand):
         """
         return """
             select kuc_name from 1bomSpiderNew.`riec_stock_szlcsc`
-            where kuc_name like 'CC%';
+            where kuc_name like 'AC%' -- OR kuc_name like 'SP%' -- OR kuc_name like '2%';
         """
 
     def main(self):
@@ -85,10 +85,12 @@ class PySql(CommFixedLengthBrand):
 
 
 if __name__ == '__main__':
-    # bra_rule 品牌对应参数  r_rule 正则表达式
-    # 第一个参数 是 数据库的例子 第二个参数是例子品牌 目的是得到正则 和 参数
-    extract_data = ExtractData('CCXXXXXXXXXXBXXXX', 'Yageo')
+    # 第一个参数 是 数据库的例子
+    # 第二个参数 是 例子品牌
+    extract_data = ExtractData('ACXXXXXXXXXXXXXL', 'Yageo')
     bra_rule, r_rule = extract_data.create_parameter_dict()
-    obj = PySql(r_rule, bra_rule)
+    # bra_rule 品牌对应参数   r_rule 正则表达式
+    # 第三参数 指定品牌     第四个参数 指定 分割符
+    # 第五个参数 指定不同的品牌对应不同的规则方法
+    obj = PySql(r_rule, bra_rule, 'Yageo', '||', 'rule_2')
     obj.main()
-
