@@ -58,36 +58,36 @@ class CommFixedLengthBrand:
                 useful_list.append((self.brand, data['kuc_name'], s1_s))
         return useful_list
 
-    def rule_1(self, v, j):
+    def rule_1(self, data_str, index):
         '''
         处理能匹配正则 不能匹配参数字典的情况
-        :param v:
-        :param j: 下标
+        :param data_str:
+        :param index: 下标
         :return:
         '''
-        arg = list(self.bra_rule[j].values())[0]
+        arg = list(self.bra_rule[index].values())[0]
         # 取单位符号 arg
-        if len(v) == 3:
+        if len(data_str) == 3:
             # 处理数据3长度的情况
-            if v.isdigit():
+            if data_str.isdigit():
                 # 处理数据全是数字的情况
-                v = 'JUMPER' if v.count('0') == 3 else self.handle_data(v, arg)
-            elif 'R' in v.upper():
+                data_str = 'JUMPER' if data_str.count('0') == 3 else self.handle_data(data_str, arg)
+            elif 'R' in data_str.upper():
                 # 处理 R 情况数据
-                v = v.replace('R', '.')
-                v = str(float(v)) + arg
-        elif len(v) == 4:
+                data_str = data_str.replace('R', '.')
+                data_str = str(float(data_str)) + arg
+        elif len(data_str) == 4:
             # 处理数据4长度的情况
-            if v.isdigit():
+            if data_str.isdigit():
                 # 处理数据全是数字的情况
-                v = 'JUMPER' if v.count('0') == 4 else self.handle_data(v, arg)
-            elif 'R' in v.upper():
+                data_str = 'JUMPER' if data_str.count('0') == 4 else self.handle_data(data_str, arg)
+            elif 'R' in data_str.upper():
                 # 处理 R 情况数据
-                v = v.replace('R', '.')
-                v = str(float(v)) + arg
+                data_str = data_str.replace('R', '.')
+                data_str = str(float(data_str)) + arg
             else:
                 # 处理最后一位为字母和数字的转换
-                num, stem = (v[:-1], v[-1:])
+                num, stem = (data_str[:-1], data_str[-1:])
                 d_num = {
                     'J': 0.1,
                     'K': 0.01,
@@ -95,10 +95,10 @@ class CommFixedLengthBrand:
                     'M': 0.0001,
                     'N': 0.00001,
                 }
-                v = str(round(int(num) * d_num.get(stem), 2))
-                v = v[:v.index('.')] + arg if v.endswith('0') else v + arg
+                data_str = str(round(int(num) * d_num.get(stem), 2))
+                data_str = data_str[:data_str.index('.')] + arg if data_str.endswith('0') else data_str + arg
 
-        return v
+        return data_str
 
     def rule_2(self, data_str, index):
         arg = list(self.bra_rule[index].values())[0]
@@ -117,6 +117,21 @@ class CommFixedLengthBrand:
             parameter = parameter[:-1]
         parameter += arg
         return parameter
+
+    def rule_3(self, data_str, index):
+        arg = list(self.bra_rule[index].values())[0]
+        d_stem = {
+            'R': '.',
+            'U': '.000'
+        }
+        parameter = ''
+        if not data_str == '0R':
+            for data in data_str:
+                if data in d_stem:
+                    data = d_stem[data]
+                parameter += data
+            return parameter + arg
+        return 'Jumper'
 
     def query_data(self, sql_str):
         """
