@@ -7,7 +7,7 @@ AO | A0
 A1 | A1
 A2 | A2
 
-0B | Voltage Code2W.V
+0B | Voltage Code2W.Vsadasd
 0E | Voltage Code2.5W.V
 0G | Voltage Code4W.V
 0J | Voltage Code6.3W.V
