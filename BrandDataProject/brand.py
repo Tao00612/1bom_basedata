@@ -1,8 +1,6 @@
 import os
 import re
 import sys
-import time
-
 sys.path.append(os.path.abspath('..'))
 from ToolProject.mysql_utils.mysql_conf import MYSQL_CONFIG_PROD
 from ToolProject.mysql_utils.mysql_conn import MysqlPooledDB
@@ -72,7 +70,7 @@ class PySql(CommFixedLengthBrand):
         """
         return """
             select kuc_name from 1bomSpiderNew.`riec_stock_szlcsc`
-            where kuc_name like 'RC%' --     OR kuc_name like 'R%' OR kuc_name like '2%';
+            -- where kuc_name like 'NFM%' --     OR kuc_name like 'R%' OR kuc_name like '2%';
         """
 
     def main(self):
@@ -87,12 +85,12 @@ class PySql(CommFixedLengthBrand):
 if __name__ == '__main__':
     # 第一个参数 是 数据库的例子
     # 第二个参数 是 例子品牌
-    extract_data = ExtractData('RC0603XR-XXXXXXL', 'Yageo')
+    extract_data = ExtractData('NFM3DCC102R1H3L', 'Murata')
     bra_rule, r_rule = extract_data.create_parameter_dict()
     # bra_rule 品牌对应参数   r_rule 正则表达式
     # 第三参数 指定品牌     第四个参数 指定 分割符
     # 第五个参数 指定不同的品牌对应不同的规则方法
-    obj = PySql(r_rule, bra_rule, 'Yageo', '||', 'rule_2')
+    obj = PySql(r_rule, bra_rule, 'Murata', '||', 'rule_1')
     obj.main()
 
 

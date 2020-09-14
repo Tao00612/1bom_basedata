@@ -52,7 +52,6 @@ class CommFixedLengthBrand:
                     else:
                         # 根据传来的规则参数 执行对应的规则方法
                         v = getattr(self, self.rule)(v, j)
-                        # v = self.rule_1(v, j)
                         s1.append(v)
                 s1_s = self.sign.join(s1)
                 useful_list.append((self.brand, data['kuc_name'], s1_s))
@@ -60,7 +59,7 @@ class CommFixedLengthBrand:
 
     def rule_1(self, data_str, index):
         '''
-        处理能匹配正则 不能匹配参数字典的情况
+        处理最后一位数表示10的n次幂情况的规则1
         :param data_str:
         :param index: 下标
         :return:
@@ -76,6 +75,8 @@ class CommFixedLengthBrand:
                 # 处理 R 情况数据
                 data_str = data_str.replace('R', '.')
                 data_str = str(float(data_str)) + arg
+            else:
+                return data_str
         elif len(data_str) == 4:
             # 处理数据4长度的情况
             if data_str.isdigit():
@@ -101,37 +102,62 @@ class CommFixedLengthBrand:
         return data_str
 
     def rule_2(self, data_str, index):
+        """
+        处理RKM的情况 规则2
+        :param data_str:
+        :param index:
+        :return:
+        """
         arg = list(self.bra_rule[index].values())[0]
+        if data_str == 'OR':
+            return arg
         d_stem = {
             'R': 'Ω',
             'K': 'KΩ',
             'M': 'MΩ'
         }
         parameter = ''
-        for data_s in data_str:
-            if data_s in d_stem:
-                arg = d_stem[data_s]
-                data_s = '.'
-            parameter += data_s
-        if parameter[-1] == '.':
-            parameter = parameter[:-1]
-        parameter += arg
+        if not data_str[:2] == '0R':
+            for data_s in data_str:
+                if data_s in d_stem:
+                    arg = d_stem[data_s]
+                    data_s = '.'
+                parameter += data_s
+            if parameter[-1] == '.':
+                parameter = parameter[:-1]
+            parameter += arg
+            return parameter
+        parameter = '0.' + data_str[2:] + arg
         return parameter
 
     def rule_3(self, data_str, index):
+        """
+        处理小数的规则3
+        :param data_str:
+        :param index:
+        :return:
+        """
         arg = list(self.bra_rule[index].values())[0]
         d_stem = {
             'R': '.',
             'U': '.000'
         }
-        parameter = ''
-        if not data_str == '0R':
-            for data in data_str:
-                if data in d_stem:
-                    data = d_stem[data]
-                parameter += data
-            return parameter + arg
-        return 'Jumper'
+        if not data_str[0] == 'R':
+            parameter = ''
+            if not data_str == '0R':
+                for data in data_str:
+                    if data in d_stem:
+                        data = d_stem[data]
+                    parameter += data
+                return parameter + arg
+            return 'Jumper'
+        para = ''
+        if len(data_str) == 4:
+            para = int(data_str[1:])
+        elif len(data_str) == 5:
+            para = int(data_str[1:]) * 0.1
+        para = str(para) + arg
+        return para
 
     def query_data(self, sql_str):
         """
